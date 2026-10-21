@@ -1,3 +1,4 @@
+# Modified 2026-10-22 by weewx-packages: compatibility and tracker repairs.
 # Copyright 2014-2020 Matthew Wall
 # Distributed under terms of the GPLv3
 """
@@ -16,9 +17,6 @@ weewx configuration file:
     [[Services]]
         process_services = ..., user.cwxn.CumulusWXNow
 """
-
-# FIXME: when value is None, we insert a 0.  but is there something in the
-#        aprs spec that is more appropriate?
 
 import time
 
@@ -67,7 +65,7 @@ except ImportError:
     def log_traceback_error(prefix=''):
         log_traceback(prefix=prefix, loglevel=syslog.LOG_ERR)
 
-VERSION = "0.5"
+VERSION = "0.6.0"
 
 if weewx.__version__ < "3":
     raise weewx.UnsupportedFeature("WeeWX 3 is required, found %s" %
@@ -84,7 +82,7 @@ def convert(v, metric, group, from_unit_system, to_units):
 def nullproof(key, data):
     if key in data and data[key] is not None:
         return data[key]
-    return 0
+    return None
 
 
 def calcRainHour(dbm, ts):
@@ -159,20 +157,16 @@ class CumulusWXNow(StdService):
         v = nullproof('outTemp', packet)
         data['outTemp'] = convert(v, 'outTemp', 'group_temperature', pu, 'degree_F')
         v = calcRainHour(archive, data['dateTime'])
-        if v is None:
-            v = 0
         data['hourRain'] = convert(v, 'rain', 'group_rain', pu, 'inch')
         if 'rain24' in packet:
             v = nullproof('rain24', packet)
         else:
             v = calcRain24(archive, data['dateTime'])
-            v = 0 if v is None else v
         data['rain24'] = convert(v, 'rain', 'group_rain', pu, 'inch')
         if 'dayRain' in packet:
             v = nullproof('dayRain', packet)
         else:
             v = calcDayRain(archive, data['dateTime'])
-            v = 0 if v is None else v
         data['dayRain'] = convert(v, 'rain', 'group_rain', pu, 'inch')
         data['outHumidity'] = nullproof('outHumidity', packet)
         v = nullproof('barometer', packet)
@@ -180,18 +174,22 @@ class CumulusWXNow(StdService):
         return data
 
     def write_data(self, data):
-        fields = []
-        fields.append("%03d" % int(data['windDir']))
-        fields.append("/%03d" % int(data['windSpeed']))
-        fields.append("g%03d" % int(data['windGust']))
-        fields.append("t%03d" % int(data['outTemp']))
-        fields.append("r%03d" % int(data['hourRain'] * 100))
-        fields.append("p%03d" % int(data['rain24'] * 100))
-        fields.append("P%03d" % int(data['dayRain'] * 100))
-        if data['outHumidity'] < 0 or 100 <= data['outHumidity']:
-            data['outHumidity'] = 0
-        fields.append("h%03d" % int(data['outHumidity']))
-        fields.append("b%05d" % int(data['barometer'] * 10))
+        def field(key, width, prefix='', scale=1):
+            value = data.get(key)
+            text = ' ' * width if value is None else '%0*d' % (width, int(value * scale))
+            return prefix + text
+
+        fields = [field('windDir', 3), field('windSpeed', 3, '/'),
+                  field('windGust', 3, 'g'), field('outTemp', 3, 't'),
+                  field('hourRain', 3, 'r', 100), field('rain24', 3, 'p', 100),
+                  field('dayRain', 3, 'P', 100)]
+        humidity = data.get('outHumidity')
+        if humidity is None or not 0 <= humidity <= 100:
+            fields.append('h  ')
+        else:
+            # APRS reserves 00 for saturation; its lowest representable value is 1%.
+            fields.append('h%02d' % (0 if humidity == 100 else max(1, int(humidity))))
+        fields.append(field('barometer', 5, 'b', 10))
         with open(self.filename, 'w') as f:
             f.write(time.strftime("%b %d %Y %H:%M\n",
                                   time.localtime(data['dateTime'])))

@@ -1,0 +1,38 @@
+{
+  "environments": [
+    {
+      "environment": "py314-weewx552",
+      "exit_code": 0,
+      "seconds": 0.21,
+      "summary": "12 passed in 0.03s"
+    },
+    {
+      "environment": "py310-weewx510",
+      "exit_code": 0,
+      "seconds": 0.18,
+      "summary": "12 passed in 0.06s"
+    },
+    {
+      "environment": "py310-weewx410",
+      "exit_code": 0,
+      "seconds": 0.15,
+      "summary": "12 passed in 0.04s"
+    }
+  ],
+  "mutations": [
+    {
+      "mutation": "humidity-width",
+      "test": "tests/test_cwxn.py::test_humidity_width_and_limits",
+      "detected": true,
+      "exit_code": 1,
+      "observed_failure": "E       AssertionError: assert '059' == '59'\nE         \nE         - 59\nE         + 059\nE         ? +\nE       AssertionError: assert '000' == '00'\nE         \nE         - 00\nE         + 000\nE         ?   +\nE       AssertionError: assert '001' == '01'\nE         \nE         - 01\nE         + 001\nE         ? +\nE       AssertionError: assert '001' == '01'\nE         \nE         - 01\nE         + 001\nE         ? +\nE       AssertionError: assert '099' == '99'\nE         \nE         - 99\nE         + 099\nE         ? +\nFAILED tests/test_cwxn.py::test_humidity_width_and_limits[59-59] - AssertionE...\nFAILED tests/test_cwxn.py::test_humidity_width_and_limits[100-00] - Assertion...\nFAILED tests/test_cwxn.py::test_humidity_width_and_limits[0-01] - AssertionEr...\nFAILED tests/test_cwxn.py::test_humidity_width_and_limits[1-01] - AssertionEr...\nFAILED tests/test_cwxn.py::test_humidity_width_and_limits[99-99] - AssertionE..."
+    },
+    {
+      "mutation": "missing-is-not-zero",
+      "test": "tests/test_cwxn.py::test_missing_values_and_zero_are_distinct",
+      "detected": true,
+      "exit_code": 1,
+      "observed_failure": "E       AssertionError: assert '000/000g000t...P   h01b00000' == '   /   g   t...P   h  b     '\nE         \nE         -    /   g   t   r   p   P   h  b     \nE         + 000/000g000t032r   p   P   h01b00000\nFAILED tests/test_cwxn.py::test_missing_values_and_zero_are_distinct - Assert..."
+    }
+  ]
+}
