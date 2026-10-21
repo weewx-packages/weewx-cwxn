@@ -36,3 +36,22 @@ def test_rain_and_negative_temperature_survive(tmp_path):
     output = render(tmp_path, {'outTemp': -20, 'dayRain': 2.54, 'rain24': 0.254, 'windSpeed': 16.09344})
     assert '/010g   t-04' in output
     assert 'p010P100' in output
+
+
+@pytest.mark.parametrize('units,rain', [(weewx.METRICWX,25.4),(weewx.METRIC,2.54),(weewx.US,1)])
+def test_archive_rain_uses_archive_units(units, rain):
+    class RainArchive:
+        table_name = 'archive'
+
+        def getSql(self, sql, params=()):
+            return (units,) if 'usUnits' in sql else (rain,)
+
+    service = cwxn.CumulusWXNow.__new__(cwxn.CumulusWXNow)
+    packet = {'dateTime':1700000000,'usUnits':weewx.US,'dayRain':2,'rain24':0}
+    data = service.calculate(packet, RainArchive())
+    assert data['hourRain'] == pytest.approx(1)
+    assert data['dayRain'] == 2
+    assert data['rain24'] == 0
+    data = service.calculate({'dateTime':1700000000,'usUnits':weewx.US}, RainArchive())
+    assert data['rain24'] == pytest.approx(1)
+    assert data['dayRain'] == pytest.approx(1)

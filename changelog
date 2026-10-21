@@ -1,3 +1,6 @@
+2026-10-22  0.6.1
+  Convert archive rain using archive units when LOOP packets use another unit system. Packet-provided daily and 24-hour totals retain packet units.
+
 0.5 14feb2021
 * changes for weewx4/python3 (thank you gary!)
 * move to github (oops!)

@@ -65,7 +65,7 @@ except ImportError:
     def log_traceback_error(prefix=''):
         log_traceback(prefix=prefix, loglevel=syslog.LOG_ERR)
 
-VERSION = "0.6.0"
+VERSION = "0.6.1"
 
 if weewx.__version__ < "3":
     raise weewx.UnsupportedFeature("WeeWX 3 is required, found %s" %
@@ -147,6 +147,8 @@ class CumulusWXNow(StdService):
 
     def calculate(self, packet, archive):
         pu = packet.get('usUnits')
+        row = archive.getSql("SELECT usUnits FROM %s LIMIT 1" % archive.table_name, ())
+        archive_units = row[0] if row is not None and row[0] is not None else pu
         data = dict()
         data['dateTime'] = packet['dateTime']
         data['windDir'] = nullproof('windDir', packet)
@@ -157,17 +159,21 @@ class CumulusWXNow(StdService):
         v = nullproof('outTemp', packet)
         data['outTemp'] = convert(v, 'outTemp', 'group_temperature', pu, 'degree_F')
         v = calcRainHour(archive, data['dateTime'])
-        data['hourRain'] = convert(v, 'rain', 'group_rain', pu, 'inch')
+        data['hourRain'] = convert(v, 'rain', 'group_rain', archive_units, 'inch')
         if 'rain24' in packet:
             v = nullproof('rain24', packet)
+            rain_units = pu
         else:
             v = calcRain24(archive, data['dateTime'])
-        data['rain24'] = convert(v, 'rain', 'group_rain', pu, 'inch')
+            rain_units = archive_units
+        data['rain24'] = convert(v, 'rain', 'group_rain', rain_units, 'inch')
         if 'dayRain' in packet:
             v = nullproof('dayRain', packet)
+            rain_units = pu
         else:
             v = calcDayRain(archive, data['dateTime'])
-        data['dayRain'] = convert(v, 'rain', 'group_rain', pu, 'inch')
+            rain_units = archive_units
+        data['dayRain'] = convert(v, 'rain', 'group_rain', rain_units, 'inch')
         data['outHumidity'] = nullproof('outHumidity', packet)
         v = nullproof('barometer', packet)
         data['barometer'] = convert(v, 'pressure', 'group_pressure', pu, 'mbar')

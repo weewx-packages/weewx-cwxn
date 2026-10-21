@@ -11,7 +11,7 @@ def loader():
 class CWXNInstaller(ExtensionInstaller):
     def __init__(self):
         super(CWXNInstaller, self).__init__(
-            version="0.6.0",
+            version="0.6.1",
             name='cwxn',
             description='Emit a Cumulus wxnow.txt for LOOP data.',
             author="Matthew Wall",

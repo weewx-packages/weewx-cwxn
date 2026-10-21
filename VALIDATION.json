@@ -34,5 +34,46 @@
       "exit_code": 1,
       "observed_failure": "E       AssertionError: assert '000/000g000t...P   h01b00000' == '   /   g   t...P   h  b     '\nE         \nE         -    /   g   t   r   p   P   h  b     \nE         + 000/000g000t032r   p   P   h01b00000\nFAILED tests/test_cwxn.py::test_missing_values_and_zero_are_distinct - Assert..."
     }
-  ]
+  ],
+  "independent_review_2026_10_22": {
+    "upstream_refs": {
+      "master": "e0a863062aa957fd8a4b0c5c8484d6530bbf0f4c",
+      "development": "06b5ffb3335417132d7527e738e7eea9769c46bf"
+    },
+    "environments": [
+      {
+        "environment": "master-py310",
+        "exit_code": 0,
+        "summary": "15 passed in 0.06s"
+      },
+      {
+        "environment": "master-py314",
+        "exit_code": 0,
+        "summary": "15 passed in 0.08s"
+      },
+      {
+        "environment": "development-py310",
+        "exit_code": 0,
+        "summary": "15 passed in 0.06s"
+      },
+      {
+        "environment": "development-py314",
+        "exit_code": 0,
+        "summary": "15 passed in 0.06s"
+      }
+    ],
+    "mutations": [
+      {
+        "mutation": "archive-units",
+        "test": "tests/test_cwxn.py::test_archive_rain_uses_archive_units",
+        "detected": true,
+        "failure_summary": "2 failed, 1 passed in 0.03s",
+        "restored_exit_code": 0
+      }
+    ],
+    "limits": [
+      "No external account, live API, hardware or renderer certification."
+    ],
+    "previous_release_unchanged": true
+  }
 }
