@@ -7,3 +7,7 @@ Keep upstream Python style and use docstrings instead of runtime type annotation
 ## Tests
 
 Run `python -m pytest -q` in an environment with WeeWX and pytest installed. The tests use local receivers and temporary station directories. WeeWX 4 tests pass bin_root explicitly to keep installation isolated.
+
+## Documentation
+
+README follows the weewx-packages schema and names no versions or archive URLs; installation links to the catalog page.
