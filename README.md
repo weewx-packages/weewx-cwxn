@@ -1,52 +1,68 @@
-# Cumulus wxnow output for WeeWX
+# Cumulus wxnow output
 
 Write LOOP readings to a two-line `wxnow.txt` file for software that reads the
-[Cumulus wxnow format](https://cumuluswiki.org/a/Wxnow.txt). Rain totals come from
-the WeeWX archive when the packet does not provide them.
+[Cumulus wxnow format](https://cumuluswiki.org/a/Wxnow.txt). The service writes
+a local file only; it does not publish or transmit it.
 
-This is the weewx-packages continuation, release **0.6.1**.
-[Origin](ORIGIN.md) records the upstream revision; [repair notes](REPAIR_NOTES.md)
-describe the maintenance changes.
+Independent continuation of
+[matthewwall/weewx-cwxn](https://github.com/matthewwall/weewx-cwxn).
+[ORIGIN.md](ORIGIN.md) records the upstream revision and
+[REPAIR_NOTES.md](REPAIR_NOTES.md) describes the maintenance changes.
 
-The catalog archive targets WeeWX `>=5.5.2,<5.7` and Python `>=3.10,<3.15`.
+## Requirements
 
-## Install
+- The `wx_binding` archive database. It supplies the rain totals.
+- Write permission for the WeeWX user in the destination directory.
+- No Python package beyond WeeWX and no external account.
 
-Use `weectl` from the Python environment running WeeWX. With stock WeeWX 5,
-install the published archive:
+## Installation
 
-```sh
-weectl extension install https://github.com/weewx-packages/weewx-cwxn/releases/download/v0.6.1/weewx-cwxn-0.6.1.tar.gz --config /path/to/weewx.conf
-```
+Install `cwxn` from the [WeeWX packages catalog](https://github.com/weewx-packages/catalog/blob/main/packages/cwxn.md).
+The catalog page lists the current release, its WeeWX and Python
+requirements, and the install, update and removal commands.
 
-Replace `/path/to/weewx.conf` with your station configuration. You can also
-download that URL and pass the local archive to the same command. Use elevated
-permissions only when your station files require them.
-
-## Write the file
-
-No extra Python packages or external account are required. The installer adds
-`user.cwxn.CumulusWXNow` to the process services and configures:
+The installer adds `user.cwxn.CumulusWXNow` to the process services and
+configures:
 
 ```ini
 [CumulusWXNow]
     filename = /var/tmp/wxnow.txt
 ```
 
-The WeeWX service user must be able to write the destination directory. Restart
-WeeWX yourself, then inspect the file after a LOOP packet. To write once per
-archive record instead, add `binding = archive` to this section.
+After a LOOP packet, inspect the file.
 
-The output uses local time, Fahrenheit, mph, hundredths of an inch for rain,
-and tenths of a millibar for pressure, independently of your database units.
-Missing values occupy blank fields. Humidity uses APRS encoding, with `h00`
-for 100% and `h01` for values below 1%.
+## Configuration
 
-## Limits
+```ini
+[CumulusWXNow]
+    filename = /var/tmp/wxnow.txt
+    binding = archive
+```
 
-The service reads the `wx_binding` archive for hourly, daily and 24-hour rain.
-A writable destination and a working archive binding are required. Partial
-LOOP packets can leave fields blank. Publishing the file or passing it to an
-APRS application is a separate task; this service does not transmit it.
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `filename` | `/var/tmp/wxnow.txt` | Path of the output file. |
+| `binding` | `loop` | `loop` writes on every LOOP packet. Any other value, for example `archive`, writes on archive records. |
 
-Copyright 2014-2020 Matthew Wall. [GNU GPLv3](license).
+The first line holds the local time of the reading. The second line uses
+Fahrenheit, mph, hundredths of an inch for rain and tenths of a millibar for
+pressure, independently of your database units. Missing values occupy blank
+fields. Humidity uses APRS encoding, with `h00` for 100% and `h01` for values
+below 1%.
+
+Rain in the last hour comes from the archive. The 24-hour and daily totals come
+from the packet's `rain24` and `dayRain` when present, otherwise from the
+archive.
+
+## Limitations
+
+- Partial LOOP packets leave the missing fields blank.
+
+## Development
+
+Run `python -m pytest -q` in an environment with WeeWX and pytest installed.
+
+## License
+
+Copyright 2014-2020 Matthew Wall.
+Distributed under the terms of the [GNU GPLv3](license).
